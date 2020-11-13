@@ -7,13 +7,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-cmp/cmp/cmpopts"
-
+	"github.com/ginuerzh/dicom/pkg/dicomio"
+	"github.com/ginuerzh/dicom/pkg/tag"
+	"github.com/ginuerzh/dicom/pkg/uid"
 	"github.com/google/go-cmp/cmp"
-
-	"github.com/suyashkumar/dicom/pkg/dicomio"
-	"github.com/suyashkumar/dicom/pkg/tag"
-	"github.com/suyashkumar/dicom/pkg/uid"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestWrite(t *testing.T) {

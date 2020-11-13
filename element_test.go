@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ginuerzh/dicom/pkg/tag"
 	"github.com/google/go-cmp/cmp"
-
-	"github.com/suyashkumar/dicom/pkg/tag"
 )
 
 func TestElement_MarshalJSON_NestedElements(t *testing.T) {

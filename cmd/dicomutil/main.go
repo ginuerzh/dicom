@@ -12,9 +12,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/suyashkumar/dicom"
-	"github.com/suyashkumar/dicom/pkg/frame"
-	"github.com/suyashkumar/dicom/pkg/tag"
+	"github.com/ginuerzh/dicom"
+	"github.com/ginuerzh/dicom/pkg/frame"
+	"github.com/ginuerzh/dicom/pkg/tag"
 )
 
 var (

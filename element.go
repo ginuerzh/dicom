@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/suyashkumar/dicom/pkg/frame"
-	"github.com/suyashkumar/dicom/pkg/tag"
+	"github.com/ginuerzh/dicom/pkg/frame"
+	"github.com/ginuerzh/dicom/pkg/tag"
 )
 
 // ErrorUnexpectedDataType indicates that an unexpected (not allowed) data type was sent to NewValue.
@@ -137,7 +137,7 @@ func NewElement(t tag.Tag, data interface{}) (*Element, error) {
 		Tag:                    t,
 		ValueRepresentation:    tag.GetVRKind(t, rawVR),
 		RawValueRepresentation: rawVR,
-		Value: value,
+		Value:                  value,
 	}, nil
 }
 

@@ -12,9 +12,9 @@ import (
 
 	"unicode"
 
-	"github.com/suyashkumar/dicom/pkg/dicomio"
-	"github.com/suyashkumar/dicom/pkg/frame"
-	"github.com/suyashkumar/dicom/pkg/tag"
+	"github.com/ginuerzh/dicom/pkg/dicomio"
+	"github.com/ginuerzh/dicom/pkg/frame"
+	"github.com/ginuerzh/dicom/pkg/tag"
 )
 
 var (

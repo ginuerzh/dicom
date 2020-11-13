@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/suyashkumar/dicom/pkg/tag"
+	"github.com/ginuerzh/dicom/pkg/tag"
 )
 
 func makeSequenceElement(tg tag.Tag, items [][]*Element) *Element {
