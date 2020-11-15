@@ -203,15 +203,15 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 	if err != nil {
 		return nil, 0, err
 	}
-	bitsAllocated := MustGetInts(b.Value)[0]
+	bitsAllocated := MustGetUInts(b.Value)[0]
 
 	s, err := parsedData.FindElementByTag(tag.SamplesPerPixel)
 	if err != nil {
 		return nil, 0, err
 	}
-	samplesPerPixel := MustGetInts(s.Value)[0]
+	samplesPerPixel := MustGetUInts(s.Value)[0]
 
-	pixelsPerFrame := MustGetInts(rows.Value)[0] * MustGetInts(cols.Value)[0]
+	pixelsPerFrame := MustGetUInts(rows.Value)[0] * MustGetUInts(cols.Value)[0]
 
 	// Parse the pixels:
 	image.Frames = make([]frame.Frame, nFrames)
@@ -221,8 +221,8 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 			Encapsulated: false,
 			NativeData: frame.NativeFrame{
 				BitsPerSample: int(bitsAllocated),
-				Rows:          int(MustGetInts(rows.Value)[0]),
-				Cols:          int(MustGetInts(cols.Value)[0]),
+				Rows:          int(MustGetUInts(rows.Value)[0]),
+				Cols:          int(MustGetUInts(cols.Value)[0]),
 				Data:          make([][]int, int(pixelsPerFrame)),
 			},
 		}
@@ -257,7 +257,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 		}
 	}
 
-	bytesRead = (bitsAllocated / 8) * samplesPerPixel * pixelsPerFrame * int64(nFrames)
+	bytesRead = int64((bitsAllocated / 8) * samplesPerPixel * pixelsPerFrame * uint64(nFrames))
 
 	return &image, bytesRead, nil
 }
@@ -505,7 +505,7 @@ func readUInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) 
 			}
 			retVal.value = append(retVal.value, uint64(val))
 			break
-		case "OL", "UL":
+		case "AT", "OL", "UL":
 			val, err := r.ReadUInt32()
 			if err != nil {
 				return nil, err
@@ -556,7 +556,7 @@ func readElement(r dicomio.Reader, d *Dataset, fc chan<- *frame.Frame) (*Element
 
 	val, err := readValue(r, *t, vr, vl, readImplicit, d, fc)
 	if err != nil {
-		log.Println("error reading value ", err)
+		log.Println("error reading value", *t, vr, vl, readImplicit, err)
 		return nil, err
 	}
 

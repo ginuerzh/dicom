@@ -227,11 +227,11 @@ func (p *Parser) readHeader() ([]*Element, error) {
 		return nil, err
 	}
 
-	if maybeMetaLen.Tag != tag.FileMetaInformationGroupLength || maybeMetaLen.Value.ValueType() != Ints {
+	if maybeMetaLen.Tag != tag.FileMetaInformationGroupLength || maybeMetaLen.Value.ValueType() != UInts {
 		return nil, ErrorMetaElementGroupLength
 	}
 
-	metaLen := maybeMetaLen.Value.GetValue().([]int)[0]
+	metaLen := maybeMetaLen.Value.GetValue().([]uint64)[0]
 
 	metaElems := []*Element{maybeMetaLen} // TODO: maybe set capacity to a reasonable initial size
 

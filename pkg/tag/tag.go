@@ -131,9 +131,9 @@ func GetVRKind(tag Tag, vr string) VRKind {
 		return VRFloat64List
 	case "FL", "OF":
 		return VRFloat32List
-	case "OL":
+	case "OL", "UL":
 		return VRUInt32List
-	case "OV":
+	case "OV", "UV":
 		return VRUInt64List
 	case "SL":
 		return VRInt32List
@@ -143,12 +143,8 @@ func GetVRKind(tag Tag, vr string) VRKind {
 		return VRSequence
 	case "SV":
 		return VRInt64List
-	case "UL":
-		return VRUInt32List
 	case "US":
 		return VRUInt16List
-	case "UV":
-		return VRUInt64List
 	default:
 		return VRStringList
 	}

@@ -167,7 +167,7 @@ func writeFileHeader(w dicomio.Writer, ds *Dataset, metaElems []*Element, opts w
 	if err := w.WriteString(magicWord); err != nil {
 		return err
 	}
-	lengthElem, err := NewElement(tag.FileMetaInformationGroupLength, []int{len(metaBytes.Bytes())})
+	lengthElem, err := NewElement(tag.FileMetaInformationGroupLength, []uint64{uint64(len(metaBytes.Bytes()))})
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func verifyValueType(t tag.Tag, value Value, vr string) error {
 	switch vr {
 	case "SL", "SS", "SV":
 		ok = valueType == Ints
-	case "OL", "OV", "UL", "US", "UV":
+	case "AT", "OL", "OV", "UL", "US", "UV":
 		ok = valueType == UInts
 	case "SQ":
 		ok = valueType == Sequences
@@ -274,14 +274,12 @@ func verifyValueType(t tag.Tag, value Value, vr string) error {
 		}
 	case "FL", "FD", "OD", "OF":
 		ok = valueType == Floats
-	case "AT":
-		ok = valueType == UInts
 	default:
 		ok = valueType == Strings
 	}
 
 	if !ok {
-		return fmt.Errorf("ValueType does not match the specified type in the VR")
+		return fmt.Errorf("%v: ValueType %s does not match the specified type in the VR %s", t, valueType, vr)
 	}
 	return nil
 }
@@ -391,7 +389,9 @@ func writeValue(w dicomio.Writer, t tag.Tag, value Value, valueType ValueType, v
 	case Bytes:
 		return writeBytes(w, v.([]byte), vr)
 	case Ints:
-		return writeInts(w, v.([]int), vr)
+		return writeInts(w, v.([]int64), vr)
+	case UInts:
+		return writeUInts(w, v.([]uint64), vr)
 	case PixelData:
 		return writePixelData(w, t, value, vr, vl)
 	case SequenceItem:
@@ -447,15 +447,41 @@ func writeBytes(w dicomio.Writer, values []byte, vr string) error {
 	return nil
 }
 
-func writeInts(w dicomio.Writer, values []int, vr string) error {
+func writeInts(w dicomio.Writer, values []int64, vr string) error {
 	for _, value := range values {
 		switch vr {
-		case "US", "SS":
+		case "SS":
 			if err := w.WriteUInt16(uint16(value)); err != nil {
 				return err
 			}
-		case "UL", "SL":
+		case "SL":
 			if err := w.WriteUInt32(uint32(value)); err != nil {
+				return err
+			}
+		case "SV":
+			if err := w.WriteUInt64(uint64(value)); err != nil {
+				return err
+			}
+		default:
+			return ErrorMismatchValueTypeAndVR
+		}
+	}
+	return nil
+}
+
+func writeUInts(w dicomio.Writer, values []uint64, vr string) error {
+	for _, value := range values {
+		switch vr {
+		case "US":
+			if err := w.WriteUInt16(uint16(value)); err != nil {
+				return err
+			}
+		case "AT", "UL", "OL":
+			if err := w.WriteUInt32(uint32(value)); err != nil {
+				return err
+			}
+		case "UV", "OV":
+			if err := w.WriteUInt64(uint64(value)); err != nil {
 				return err
 			}
 		default:

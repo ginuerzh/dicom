@@ -21,7 +21,8 @@ type Element struct {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	ds, err := dicom.ParseFile("cr.dcm", nil)
+	fname := "ect"
+	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,14 +42,7 @@ func main() {
 		extractPixelData(dicom.MustGetPixelDataInfo(pde.Value))
 	*/
 
-	for _, e := range ds.Elements {
-		if err := verifyValueType(e.Tag, e.Value, e.RawValueRepresentation); err != nil {
-			log.Fatal(err)
-		}
-
-	}
-
-	f, err := os.Create("cr.export.dcm")
+	f, err := os.Create(fname + ".export.dcm")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,6 +51,7 @@ func main() {
 	}
 
 	f.Close()
+
 }
 
 func encodeDataSet(ds dicom.Dataset) ([]byte, error) {
@@ -73,7 +68,7 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 			VR:     e.RawValueRepresentation,
 			Length: e.ValueLength,
 		}
-
+		// log.Println("element:", e.Tag, e.RawValueRepresentation, e.Value)
 		switch e.Value.ValueType() {
 		case dicom.Strings:
 			for _, v := range dicom.MustGetStrings(e.Value) {
@@ -84,6 +79,10 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 		case dicom.Ints:
 			for _, v := range dicom.MustGetInts(e.Value) {
 				el.Values = append(el.Values, strconv.FormatInt(int64(v), 10))
+			}
+		case dicom.UInts:
+			for _, v := range dicom.MustGetUInts(e.Value) {
+				el.Values = append(el.Values, strconv.FormatUint(uint64(v), 10))
 			}
 		case dicom.Floats:
 			for _, v := range dicom.MustGetFloats(e.Value) {
@@ -133,9 +132,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse AT
 	t = tag.Tag{Group: 0x0015, Element: 0x0003}
-	v, _ = dicom.NewValue([]string{"1234"})
+	v, _ = dicom.NewValue([]uint64{0x12345678})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "AT",
@@ -185,7 +183,7 @@ func addElement(ds *dicom.Dataset) {
 	})
 
 	t = tag.Tag{Group: 0x0015, Element: 0x0008}
-	v, _ = dicom.NewValue([]float64{123.456})
+	v, _ = dicom.NewValue([]float64{-123.456})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "FL",
@@ -195,7 +193,7 @@ func addElement(ds *dicom.Dataset) {
 	})
 
 	t = tag.Tag{Group: 0x0015, Element: 0x0009}
-	v, _ = dicom.NewValue([]float64{123.456789})
+	v, _ = dicom.NewValue([]float64{-123.456789})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "FD",
@@ -244,9 +242,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse OD
 	t = tag.Tag{Group: 0x0015, Element: 0x0014}
-	v, _ = dicom.NewValue([]string{"0123456789123456"})
+	v, _ = dicom.NewValue([]float64{-1234.56789, 1234.56789})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "OD",
@@ -255,9 +252,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse OF
 	t = tag.Tag{Group: 0x0015, Element: 0x0015}
-	v, _ = dicom.NewValue([]string{"12345678"})
+	v, _ = dicom.NewValue([]float64{-1234.5678, 1234.5678})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "OF",
@@ -266,9 +262,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse OL
 	t = tag.Tag{Group: 0x0015, Element: 0x0016}
-	v, _ = dicom.NewValue([]string{"ffffffff"})
+	v, _ = dicom.NewValue([]uint64{0x12345678, 0x87654321, 0xFFFFFFFF})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "OL",
@@ -277,9 +272,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse OV
 	t = tag.Tag{Group: 0x0015, Element: 0x0017}
-	v, _ = dicom.NewValue([]string{"ffffffffffffffff"})
+	v, _ = dicom.NewValue([]uint64{0x12345678ABCDEF, 0xFFFFFFFFFFFFFFFF})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "OV",
@@ -319,7 +313,7 @@ func addElement(ds *dicom.Dataset) {
 	})
 
 	t = tag.Tag{Group: 0x0015, Element: 0x0021}
-	v, _ = dicom.NewValue([]int{-0x12345678})
+	v, _ = dicom.NewValue([]int64{-1})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "SL",
@@ -341,7 +335,7 @@ func addElement(ds *dicom.Dataset) {
 	*/
 
 	t = tag.Tag{Group: 0x0015, Element: 0x0023}
-	v, _ = dicom.NewValue([]int{-0x1234})
+	v, _ = dicom.NewValue([]int64{-1})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "SS",
@@ -360,9 +354,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse SV
 	t = tag.Tag{Group: 0x0015, Element: 0x0025}
-	v, _ = dicom.NewValue([]string{"12345678"})
+	v, _ = dicom.NewValue([]int64{-1})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "SV",
@@ -401,9 +394,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse UL
 	t = tag.Tag{Group: 0x0015, Element: 0x0029}
-	v, _ = dicom.NewValue([]int{0xffffffff})
+	v, _ = dicom.NewValue([]uint64{0xffffffff})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "UL",
@@ -427,7 +419,7 @@ func addElement(ds *dicom.Dataset) {
 	})
 
 	t = tag.Tag{Group: 0x0015, Element: 0x0032}
-	v, _ = dicom.NewValue([]int{0xffff})
+	v, _ = dicom.NewValue([]uint64{0xffff})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "US",
@@ -446,9 +438,8 @@ func addElement(ds *dicom.Dataset) {
 		Value:                  v,
 	})
 
-	// TODO: parse UV
 	t = tag.Tag{Group: 0x0015, Element: 0x0034}
-	v, _ = dicom.NewValue([]string{"12345678"})
+	v, _ = dicom.NewValue([]uint64{0xFFFFFFFFFFFFFFFF})
 	ds.Elements = append(ds.Elements, &dicom.Element{
 		Tag:                    t,
 		RawValueRepresentation: "UV",
@@ -456,34 +447,4 @@ func addElement(ds *dicom.Dataset) {
 		ValueLength:            8,
 		Value:                  v,
 	})
-}
-
-func verifyValueType(t tag.Tag, value dicom.Value, vr string) error {
-	valueType := value.ValueType()
-	var ok bool
-	switch vr {
-	case "US", "UL", "SL", "SS":
-		ok = valueType == dicom.Ints
-	case "SQ":
-		ok = valueType == dicom.Sequences
-	case "NA":
-		ok = valueType == dicom.SequenceItem
-	case "OW", "OB":
-		if t == tag.PixelData {
-			ok = valueType == dicom.PixelData
-		} else {
-			ok = valueType == dicom.Bytes
-		}
-	case "FL", "FD":
-		ok = valueType == dicom.Floats
-	case "AT":
-		fallthrough
-	default:
-		ok = valueType == dicom.Strings
-	}
-
-	if !ok {
-		return fmt.Errorf("%s, %d, ValueType does not match the specified type in the VR", vr, valueType)
-	}
-	return nil
 }
