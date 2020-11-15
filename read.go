@@ -220,44 +220,26 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 		currentFrame := frame.Frame{
 			Encapsulated: false,
 			NativeData: frame.NativeFrame{
-				BitsPerSample: int(bitsAllocated),
-				Rows:          int(MustGetUInts(rows.Value)[0]),
-				Cols:          int(MustGetUInts(cols.Value)[0]),
-				Data:          make([][]int, int(pixelsPerFrame)),
+				BitsPerSample:   int(bitsAllocated),
+				SamplesPerPixel: int(samplesPerPixel),
+				Rows:            int(MustGetUInts(rows.Value)[0]),
+				Cols:            int(MustGetUInts(cols.Value)[0]),
+				Data:            make([]byte, int(pixelsPerFrame*samplesPerPixel*(bitsAllocated/8))),
 			},
 		}
-		for pixel := 0; pixel < int(pixelsPerFrame); pixel++ {
-			currentPixel := make([]int, samplesPerPixel)
-			for value := 0; value < int(samplesPerPixel); value++ {
-				if bitsAllocated == 8 {
-					val, err := d.ReadUInt8()
-					if err != nil {
-						return nil, bytesRead, errors.New("")
-					}
-					currentPixel[value] = int(val)
-				} else if bitsAllocated == 16 {
-					val, err := d.ReadUInt16()
-					if err != nil {
-						return nil, bytesRead, errors.New("")
-					}
-					currentPixel[value] = int(val)
-				} else if bitsAllocated == 32 {
-					val, err := d.ReadUInt32()
-					if err != nil {
-						return nil, bytesRead, errors.New("")
-					}
-					currentPixel[value] = int(val)
-				}
-			}
-			currentFrame.NativeData.Data[pixel] = currentPixel
+		n, err := io.ReadFull(d, currentFrame.NativeData.Data)
+		bytesRead += int64(n)
+		if err != nil {
+			return nil, bytesRead, err
 		}
+
 		image.Frames[frameIdx] = currentFrame
 		if fc != nil {
 			fc <- &currentFrame // write the current frame to the frame channel
 		}
 	}
 
-	bytesRead = int64((bitsAllocated / 8) * samplesPerPixel * pixelsPerFrame * uint64(nFrames))
+	bytesRead = int64(pixelsPerFrame * samplesPerPixel * (bitsAllocated / 8) * uint64(nFrames))
 
 	return &image, bytesRead, nil
 }

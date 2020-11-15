@@ -306,7 +306,8 @@ func writeVRVL(w dicomio.Writer, t tag.Tag, vr string, vl uint32) error {
 		vl = tag.VLUndefinedLength
 	}
 
-	if len(vr) != 2 && vl != tag.VLUndefinedLength && t != tag.SequenceDelimitationItem {
+	if len(vr) != 2 && vl != tag.VLUndefinedLength &&
+		t != tag.SequenceDelimitationItem && t != tag.ItemDelimitationItem {
 		return fmt.Errorf("ERROR dicomio.writeVRVL: Value Representation must be of length 2, e.g. 'UN'. For tag=%v, it was RawValueRepresentation=%v",
 			tag.DebugString(t), vr)
 	}
@@ -378,7 +379,7 @@ func encodeElementHeader(w dicomio.Writer, t tag.Tag, vr string, vl uint32) erro
 }
 
 func writeValue(w dicomio.Writer, t tag.Tag, value Value, valueType ValueType, vr string, vl uint32, opts writeOptSet) error {
-	if vl == tag.VLUndefinedLength && valueType <= 2 { // strings, bytes or ints
+	if vl == tag.VLUndefinedLength && valueType <= 3 { // strings, bytes, ints or uints
 		return fmt.Errorf("encoding undefined-length element not yet supported: %v", t)
 	}
 
@@ -533,32 +534,10 @@ func writePixelData(w dicomio.Writer, t tag.Tag, value Value, vr string, vl uint
 			return err
 		}
 	} else {
-		numFrames := len(image.Frames)
-		numPixels := len(image.Frames[0].NativeData.Data)
-		numValues := len(image.Frames[0].NativeData.Data[0])
-		length := numFrames * numPixels * numValues * image.Frames[0].NativeData.BitsPerSample / 8 // length in bytes
-
-		buf := new(bytes.Buffer)
-		buf.Grow(length)
-		for frame := 0; frame < numFrames; frame++ {
-			for pixel := 0; pixel < numPixels; pixel++ {
-				for value := 0; value < numValues; value++ {
-					if image.Frames[frame].NativeData.BitsPerSample == 8 {
-						if err := binary.Write(buf, binary.LittleEndian, uint8(image.Frames[frame].NativeData.Data[pixel][value])); err != nil {
-							return err
-						}
-					} else if image.Frames[frame].NativeData.BitsPerSample == 16 {
-						if err := binary.Write(buf, binary.LittleEndian, uint16(image.Frames[frame].NativeData.Data[pixel][value])); err != nil {
-							return err
-						}
-					} else {
-						return ErrorUnsupportedBitsPerSample
-					}
-				}
+		for _, frame := range image.Frames {
+			if err := w.WriteBytes(frame.NativeData.Data); err != nil {
+				return err
 			}
-		}
-		if err := w.WriteBytes(buf.Bytes()); err != nil {
-			return err
 		}
 	}
 	return nil

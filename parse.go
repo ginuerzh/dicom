@@ -198,7 +198,15 @@ func (p *Parser) GetMetadata() Dataset {
 
 // readPreamble reads the DICOM preamble(first 128-byte).
 func (p *Parser) readPreamble() ([]byte, error) {
-	return p.reader.Peek(128)
+	b, err := p.reader.Peek(128)
+	if err != nil {
+		return nil, err
+	}
+
+	preamble := make([]byte, 128)
+	copy(preamble, b)
+
+	return preamble, nil
 }
 
 // readHeader reads the DICOM magic header and group two metadata elements.

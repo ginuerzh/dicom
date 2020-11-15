@@ -34,13 +34,12 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(string(data))
-	/*
-		pde, err := ds.FindElementByTag(tag.PixelData)
-		if err != nil {
-			log.Fatal(err)
-		}
-		extractPixelData(dicom.MustGetPixelDataInfo(pde.Value))
-	*/
+
+	pde, err := ds.FindElementByTag(tag.PixelData)
+	if err != nil {
+		log.Fatal(err)
+	}
+	extractPixelData(dicom.MustGetPixelDataInfo(pde.Value))
 
 	f, err := os.Create(fname + ".export.dcm")
 	if err != nil {
