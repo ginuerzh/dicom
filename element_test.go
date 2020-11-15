@@ -22,7 +22,7 @@ func TestElement_MarshalJSON_NestedElements(t *testing.T) {
 	}
 	seqElement := makeSequenceElement(tag.AddOtherSequence, nestedData)
 
-	want := `{"tag":{"Group":70,"Element":258},"VR":9,"rawVR":"SQ","valueLength":0,"value":[[{"tag":{"Group":16,"Element":16},"VR":2,"rawVR":"","valueLength":0,"value":["Bob"]}]]}`
+	want := `{"tag":{"Group":70,"Element":258},"VR":11,"rawVR":"SQ","valueLength":0,"value":[[{"tag":{"Group":16,"Element":16},"VR":2,"rawVR":"","valueLength":0,"value":["Bob"]}]]}`
 
 	j, err := json.Marshal(seqElement)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestElement_String(t *testing.T) {
 		ValueRepresentation:    tag.VRInt32List,
 		RawValueRepresentation: "US",
 		Value: &intsValue{
-			value: []int{100},
+			value: []int64{100},
 		},
 	}
 	want := "[\n" +
@@ -78,8 +78,14 @@ func TestNewValue(t *testing.T) {
 		},
 		{
 			name:      "ints",
-			data:      []int{1, 2},
-			wantValue: &intsValue{value: []int{1, 2}},
+			data:      []int64{1, 2},
+			wantValue: &intsValue{value: []int64{1, 2}},
+			wantError: nil,
+		},
+		{
+			name:      "uints",
+			data:      []uint64{1, 2},
+			wantValue: &uintsValue{value: []uint64{1, 2}},
 			wantError: nil,
 		},
 		{

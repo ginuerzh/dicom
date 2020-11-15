@@ -94,8 +94,10 @@ func readValue(r dicomio.Reader, t tag.Tag, vr string, vl uint32, isImplicit boo
 		return readString(r, t, vr, vl)
 	case tag.VRDate:
 		return readDate(r, t, vr, vl)
-	case tag.VRUInt16List, tag.VRUInt32List, tag.VRInt16List, tag.VRInt32List:
+	case tag.VRInt16List, tag.VRInt32List, tag.VRInt64List:
 		return readInt(r, t, vr, vl)
+	case tag.VRUInt16List, tag.VRUInt32List, tag.VRUInt64List, tag.VRTagList:
+		return readUInt(r, t, vr, vl)
 	case tag.VRSequence:
 		return readSequence(r, t, vr, vl)
 	case tag.VRItem:
@@ -168,7 +170,7 @@ func readPixelData(r dicomio.Reader, t tag.Tag, vr string, vl uint32, d *Dataset
 // readNativeFrames reads NativeData frames from a Decoder based on already parsed pixel information
 // that should be available in parsedData (elements like NumberOfFrames, rows, columns, etc)
 func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Frame) (pixelData *PixelDataInfo,
-	bytesRead int, err error) {
+	bytesRead int64, err error) {
 	image := PixelDataInfo{
 		IsEncapsulated: false,
 	}
@@ -218,15 +220,15 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 		currentFrame := frame.Frame{
 			Encapsulated: false,
 			NativeData: frame.NativeFrame{
-				BitsPerSample: bitsAllocated,
-				Rows:          MustGetInts(rows.Value)[0],
-				Cols:          MustGetInts(cols.Value)[0],
+				BitsPerSample: int(bitsAllocated),
+				Rows:          int(MustGetInts(rows.Value)[0]),
+				Cols:          int(MustGetInts(cols.Value)[0]),
 				Data:          make([][]int, int(pixelsPerFrame)),
 			},
 		}
 		for pixel := 0; pixel < int(pixelsPerFrame); pixel++ {
 			currentPixel := make([]int, samplesPerPixel)
-			for value := 0; value < samplesPerPixel; value++ {
+			for value := 0; value < int(samplesPerPixel); value++ {
 				if bitsAllocated == 8 {
 					val, err := d.ReadUInt8()
 					if err != nil {
@@ -255,7 +257,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 		}
 	}
 
-	bytesRead = (bitsAllocated / 8) * samplesPerPixel * pixelsPerFrame * nFrames
+	bytesRead = (bitsAllocated / 8) * samplesPerPixel * pixelsPerFrame * int64(nFrames)
 
 	return &image, bytesRead, nil
 }
@@ -408,10 +410,10 @@ func readFloat(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error)
 	if err != nil {
 		return nil, err
 	}
-	retVal := &floatsValue{value: make([]float64, 0, vl/2)}
+	retVal := &floatsValue{}
 	for !r.IsLimitExhausted() {
 		switch vr {
-		case "FL":
+		case "FL", "OF":
 			val, err := r.ReadFloat32()
 			if err != nil {
 				return nil, err
@@ -425,7 +427,7 @@ func readFloat(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error)
 			}
 			retVal.value = append(retVal.value, pval)
 			break
-		case "FD":
+		case "FD", "OD":
 			val, err := r.ReadFloat64()
 			if err != nil {
 				return nil, err
@@ -452,12 +454,48 @@ func readDate(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) 
 }
 
 func readInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) {
-	// TODO: add other integer types here
 	err := r.PushLimit(int64(vl))
 	if err != nil {
 		return nil, err
 	}
-	retVal := &intsValue{value: make([]int, 0, vl/2)}
+	retVal := &intsValue{}
+	for !r.IsLimitExhausted() {
+		switch vr {
+		case "SS":
+			val, err := r.ReadInt16()
+			if err != nil {
+				return nil, err
+			}
+			retVal.value = append(retVal.value, int64(val))
+			break
+		case "SL":
+			val, err := r.ReadInt32()
+			if err != nil {
+				return nil, err
+			}
+			retVal.value = append(retVal.value, int64(val))
+			break
+		case "SV":
+			val, err := r.ReadInt64()
+			if err != nil {
+				return nil, err
+			}
+			retVal.value = append(retVal.value, int64(val))
+			break
+		default:
+			return nil, errors.New("unable to parse integer type")
+		}
+	}
+	r.PopLimit()
+	return retVal, err
+}
+
+func readUInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) {
+	err := r.PushLimit(int64(vl))
+	if err != nil {
+		return nil, err
+	}
+	retVal := &uintsValue{}
 	for !r.IsLimitExhausted() {
 		switch vr {
 		case "US":
@@ -465,28 +503,21 @@ func readInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) {
 			if err != nil {
 				return nil, err
 			}
-			retVal.value = append(retVal.value, int(val))
+			retVal.value = append(retVal.value, uint64(val))
 			break
-		case "UL":
+		case "OL", "UL":
 			val, err := r.ReadUInt32()
 			if err != nil {
 				return nil, err
 			}
-			retVal.value = append(retVal.value, int(val))
+			retVal.value = append(retVal.value, uint64(val))
 			break
-		case "SL":
-			val, err := r.ReadInt32()
+		case "OV", "UV":
+			val, err := r.ReadUInt64()
 			if err != nil {
 				return nil, err
 			}
-			retVal.value = append(retVal.value, int(val))
-			break
-		case "SS":
-			val, err := r.ReadInt16()
-			if err != nil {
-				return nil, err
-			}
-			retVal.value = append(retVal.value, int(val))
+			retVal.value = append(retVal.value, uint64(val))
 			break
 		default:
 			return nil, errors.New("unable to parse integer type")
@@ -522,8 +553,6 @@ func readElement(r dicomio.Reader, d *Dataset, fc chan<- *frame.Frame) (*Element
 	if err != nil {
 		return nil, err
 	}
-
-	// log.Println("readElement: vr, vl", vr, vl)
 
 	val, err := readValue(r, *t, vr, vl, readImplicit, d, fc)
 	if err != nil {

@@ -119,12 +119,20 @@ func NewParser(in io.Reader, bytesToRead int64, frameChannel chan *frame.Frame) 
 		frameChannel: frameChannel,
 	}
 
+	preamble, err := p.readPreamble()
+	if err != nil {
+		return nil, err
+	}
+
 	elems, err := p.readHeader()
 	if err != nil {
 		return nil, err
 	}
 
-	p.dataset = Dataset{Elements: elems}
+	p.dataset = Dataset{
+		Preamble: preamble,
+		Elements: elems,
+	}
 	// TODO(suyashkumar): avoid storing the metadata pointers twice (though not that expensive)
 	p.metadata = Dataset{Elements: elems}
 
@@ -186,6 +194,11 @@ func (p *Parser) Next() (*Element, error) {
 // so far.
 func (p *Parser) GetMetadata() Dataset {
 	return p.metadata
+}
+
+// readPreamble reads the DICOM preamble(first 128-byte).
+func (p *Parser) readPreamble() ([]byte, error) {
+	return p.reader.Peek(128)
 }
 
 // readHeader reads the DICOM magic header and group two metadata elements.

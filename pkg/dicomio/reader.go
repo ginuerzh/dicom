@@ -25,10 +25,14 @@ type Reader interface {
 	ReadUInt16() (uint16, error)
 	// ReadUInt32 reads a uint32 from the underlying reader.
 	ReadUInt32() (uint32, error)
+	// ReadUInt64 reads a uint64 from the underlying reader.
+	ReadUInt64() (uint64, error)
 	// ReadInt16 reads a int16 from the underlying reader.
 	ReadInt16() (int16, error)
 	// ReadInt32 reads a int32 from the underlying reader.
 	ReadInt32() (int32, error)
+	// ReadInt64 reads a int64 from the underlying reader.
+	ReadInt64() (int64, error)
 	// ReadFloat32 reads a float32 from the underlying reader.
 	ReadFloat32() (float32, error)
 	// ReadFloat64 reads a float32 from the underlying reader.
@@ -122,6 +126,12 @@ func (r *reader) ReadUInt32() (uint32, error) {
 	return out, err
 }
 
+func (r *reader) ReadUInt64() (uint64, error) {
+	var out uint64
+	err := binary.Read(r, r.bo, &out)
+	return out, err
+}
+
 func (r *reader) ReadInt16() (int16, error) {
 	var out int16
 	err := binary.Read(r, r.bo, &out)
@@ -130,6 +140,12 @@ func (r *reader) ReadInt16() (int16, error) {
 
 func (r *reader) ReadInt32() (int32, error) {
 	var out int32
+	err := binary.Read(r, r.bo, &out)
+	return out, err
+}
+
+func (r *reader) ReadInt64() (int64, error) {
+	var out int64
 	err := binary.Read(r, r.bo, &out)
 	return out, err
 }

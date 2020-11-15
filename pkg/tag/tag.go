@@ -86,10 +86,14 @@ const (
 	VRUInt16List
 	// VRUInt32List means the element stores a list of uint32s
 	VRUInt32List
+	// VRUInt64List means the element stores a list of uint64s
+	VRUInt64List
 	// VRInt16List means the element stores a list of int16s
 	VRInt16List
 	// VRInt32List element stores a list of int32s
 	VRInt32List
+	// VRInt64List element stores a list of int64s
+	VRInt64List
 	// VRFloat32List element stores a list of float32s
 	VRFloat32List
 	// VRFloat64List element stores a list of float64s
@@ -115,28 +119,36 @@ func GetVRKind(tag Tag, vr string) VRKind {
 		return VRPixelData
 	}
 	switch vr {
-	case "DA":
-		return VRDate
 	case "AT":
 		return VRTagList
-	case "OW", "OB":
-		return VRBytes
+	case "DA":
+		return VRDate
 	case "LT", "UT":
 		return VRString
-	case "UL":
+	case "OB", "OW":
+		return VRBytes
+	case "FD", "OD":
+		return VRFloat64List
+	case "FL", "OF":
+		return VRFloat32List
+	case "OL":
 		return VRUInt32List
+	case "OV":
+		return VRUInt64List
 	case "SL":
 		return VRInt32List
-	case "US":
-		return VRUInt16List
 	case "SS":
 		return VRInt16List
-	case "FL":
-		return VRFloat32List
-	case "FD":
-		return VRFloat64List
 	case "SQ":
 		return VRSequence
+	case "SV":
+		return VRInt64List
+	case "UL":
+		return VRUInt32List
+	case "US":
+		return VRUInt16List
+	case "UV":
+		return VRUInt64List
 	default:
 		return VRStringList
 	}

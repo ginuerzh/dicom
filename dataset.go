@@ -22,6 +22,7 @@ var ErrorElementNotFound = errors.New("element not found")
 // This Dataset includes several helper methods to find Elements within this dataset or iterate over every Element
 // within this Dataset (including Elements nested within Sequences).
 type Dataset struct {
+	Preamble []byte     `json:"-"`
 	Elements []*Element `json:"elements"`
 }
 

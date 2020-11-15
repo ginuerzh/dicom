@@ -59,6 +59,10 @@ func (w *Writer) WriteUInt32(v uint32) error {
 	return binary.Write(w.out, w.bo, &v)
 }
 
+func (w *Writer) WriteUInt64(v uint64) error {
+	return binary.Write(w.out, w.bo, &v)
+}
+
 func (w *Writer) WriteFloat32(v float32) error {
 	return binary.Write(w.out, w.bo, &v)
 }

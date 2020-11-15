@@ -154,9 +154,16 @@ func writeFileHeader(w dicomio.Writer, ds *Dataset, metaElems []*Element, opts w
 		}
 	}
 
-	if err := w.WriteZeros(128); err != nil {
-		return err
+	if len(ds.Preamble) == 128 {
+		if err := w.WriteBytes(ds.Preamble); err != nil {
+			return err
+		}
+	} else {
+		if err := w.WriteZeros(128); err != nil {
+			return err
+		}
 	}
+
 	if err := w.WriteString(magicWord); err != nil {
 		return err
 	}
@@ -251,8 +258,10 @@ func verifyValueType(t tag.Tag, value Value, vr string) error {
 	valueType := value.ValueType()
 	var ok bool
 	switch vr {
-	case "US", "UL", "SL", "SS":
+	case "SL", "SS", "SV":
 		ok = valueType == Ints
+	case "OL", "OV", "UL", "US", "UV":
+		ok = valueType == UInts
 	case "SQ":
 		ok = valueType == Sequences
 	case "NA":
@@ -263,10 +272,10 @@ func verifyValueType(t tag.Tag, value Value, vr string) error {
 		} else {
 			ok = valueType == Bytes
 		}
-	case "FL", "FD":
+	case "FL", "FD", "OD", "OF":
 		ok = valueType == Floats
 	case "AT":
-		fallthrough
+		ok = valueType == UInts
 	default:
 		ok = valueType == Strings
 	}

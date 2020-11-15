@@ -88,10 +88,25 @@ func (m *MockReader) ReadUInt32() (uint32, error) {
 	return ret0, ret1
 }
 
+// ReadUInt64 mocks base method
+func (m *MockReader) ReadUInt64() (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadUInt64")
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // ReadUInt32 indicates an expected call of ReadUInt32
 func (mr *MockReaderMockRecorder) ReadUInt32() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadUInt32", reflect.TypeOf((*MockReader)(nil).ReadUInt32))
+}
+
+// ReadUInt64 indicates an expected call of ReadUInt64
+func (mr *MockReaderMockRecorder) ReadUInt64() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadUInt64", reflect.TypeOf((*MockReader)(nil).ReadUInt64))
 }
 
 // ReadInt16 mocks base method
@@ -118,10 +133,25 @@ func (m *MockReader) ReadInt32() (int32, error) {
 	return ret0, ret1
 }
 
+// ReadInt64  mocks base method
+func (m *MockReader) ReadInt64() (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadInt64")
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // ReadInt32 indicates an expected call of ReadInt32
 func (mr *MockReaderMockRecorder) ReadInt32() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadInt32", reflect.TypeOf((*MockReader)(nil).ReadInt32))
+}
+
+// ReadInt64 indicates an expected call of ReadInt64
+func (mr *MockReaderMockRecorder) ReadInt64() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadInt64", reflect.TypeOf((*MockReader)(nil).ReadInt64))
 }
 
 // ReadFloat32 mocks base method

@@ -30,14 +30,14 @@ func TestDataset_FindElementByTag(t *testing.T) {
 				Tag:                 tag.Rows,
 				ValueRepresentation: tag.VRInt32List,
 				Value: &intsValue{
-					value: []int{100},
+					value: []int64{100},
 				},
 			},
 			{
 				Tag:                 tag.Columns,
 				ValueRepresentation: tag.VRInt32List,
 				Value: &intsValue{
-					value: []int{200},
+					value: []int64{200},
 				},
 			},
 		},
@@ -72,14 +72,14 @@ func ExampleDataset_FlatIterator() {
 				Tag:                 tag.Rows,
 				ValueRepresentation: tag.VRInt32List,
 				Value: &intsValue{
-					value: []int{100},
+					value: []int64{100},
 				},
 			},
 			{
 				Tag:                 tag.Columns,
 				ValueRepresentation: tag.VRInt32List,
 				Value: &intsValue{
-					value: []int{200},
+					value: []int64{200},
 				},
 			},
 			makeSequenceElement(tag.AddOtherSequence, nestedData),
@@ -107,7 +107,7 @@ func ExampleDataset_String() {
 				ValueRepresentation:    tag.VRInt32List,
 				RawValueRepresentation: "UL",
 				Value: &intsValue{
-					value: []int{100},
+					value: []int64{100},
 				},
 			},
 			{
@@ -115,7 +115,7 @@ func ExampleDataset_String() {
 				ValueRepresentation:    tag.VRInt32List,
 				RawValueRepresentation: "UL",
 				Value: &intsValue{
-					value: []int{200},
+					value: []int64{200},
 				},
 			},
 		},

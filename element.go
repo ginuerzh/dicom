@@ -88,8 +88,10 @@ type Value interface {
 // items which each contain several elements).
 func NewValue(data interface{}) (Value, error) {
 	switch data.(type) {
-	case []int:
-		return &intsValue{value: data.([]int)}, nil
+	case []int64:
+		return &intsValue{value: data.([]int64)}, nil
+	case []uint64:
+		return &uintsValue{value: data.([]uint64)}, nil
 	case []string:
 		return &stringsValue{value: data.([]string)}, nil
 	case []byte:
@@ -160,8 +162,10 @@ const (
 	Strings ValueType = iota
 	// Bytes represents an underlying value of []byte
 	Bytes
-	// Ints represents an underlying value of []int
+	// Ints represents an underlying value of []int64
 	Ints
+	// UInts represents an underlying value of []uint64
+	UInts
 	// PixelData represents an underlying value of PixelDataInfo
 	PixelData
 	// SequenceItem represents an underlying value of []*Element
@@ -204,9 +208,9 @@ func (s *stringsValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.value)
 }
 
-// intsValue represents a value of []int.
+// intsValue represents a value of []int64.
 type intsValue struct {
-	value []int
+	value []int64
 }
 
 func (s *intsValue) isElementValue()       {}
@@ -216,6 +220,21 @@ func (s *intsValue) String() string {
 	return fmt.Sprintf("%v", s.value)
 }
 func (s *intsValue) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.value)
+}
+
+// uintsValue represents a value of []uint64.
+type uintsValue struct {
+	value []uint64
+}
+
+func (s *uintsValue) isElementValue()       {}
+func (s *uintsValue) ValueType() ValueType  { return UInts }
+func (s *uintsValue) GetValue() interface{} { return s.value }
+func (s *uintsValue) String() string {
+	return fmt.Sprintf("%v", s.value)
+}
+func (s *uintsValue) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.value)
 }
 
@@ -294,11 +313,20 @@ func (e *pixelDataValue) MarshalJSON() ([]byte, error) {
 
 // MustGetInts attempts to get an Ints value out of the provided value, and will
 // panic if it is unable to do so.
-func MustGetInts(v Value) []int {
+func MustGetInts(v Value) []int64 {
 	if v.ValueType() != Ints {
 		log.Panicf("MustGetInts expected ValueType of Ints, got: %v", v.ValueType())
 	}
-	return v.GetValue().([]int)
+	return v.GetValue().([]int64)
+}
+
+// MustGetUInts attempts to get an UInts value out of the provided value, and will
+// panic if it is unable to do so.
+func MustGetUInts(v Value) []uint64 {
+	if v.ValueType() != UInts {
+		log.Panicf("MustGetUInts expected ValueType of UInts, got: %v", v.ValueType())
+	}
+	return v.GetValue().([]uint64)
 }
 
 // MustGetStrings attempts to get a Strings value out of the provided Value, and
@@ -342,6 +370,7 @@ func MustGetPixelDataInfo(v Value) PixelDataInfo {
 var allValues = []interface{}{
 	floatsValue{},
 	intsValue{},
+	uintsValue{},
 	stringsValue{},
 	pixelDataValue{},
 	sequencesValue{},
