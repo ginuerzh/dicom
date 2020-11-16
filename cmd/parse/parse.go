@@ -21,7 +21,7 @@ type Element struct {
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	fname := "ect"
+	fname := "cr"
 	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)

@@ -322,7 +322,7 @@ func writeVRVL(w dicomio.Writer, t tag.Tag, vr string, vl uint32) error {
 			return err
 		}
 		switch vr {
-		case "NA", "OB", "OD", "OF", "OL", "OW", "SQ", "UN", "UC", "UR", "UT":
+		case "NA", "OB", "OD", "OF", "OL", "OV", "OW", "SQ", "SV", "UN", "UC", "UR", "UV", "UT":
 			if err := w.WriteZeros(2); err != nil {
 				return err
 			}
@@ -419,7 +419,7 @@ func writeStrings(w dicomio.Writer, values []string, vr string) error {
 	}
 	if len(s)%2 == 1 {
 		switch vr {
-		case "DT", "LO", "LT", "PN", "SH", "ST", "UT", "DS", "CS", "TM", "IS", "UN":
+		case "AE", "CS", "DS", "DT", "IS", "LO", "LT", "PN", "SH", "ST", "TM", "UC", "UN", "UR", "UT":
 			if err := w.WriteString(" "); err != nil { // http://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_6.2
 				return err
 			}
