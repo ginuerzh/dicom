@@ -14,20 +14,71 @@ import (
 
 type Element struct {
 	VR     string        `json:"vr"`
+	Name   string        `json:"name"`
 	Length uint32        `json:"length"`
 	Values []interface{} `json:"values"`
 }
 
+type Frame struct {
+	Native         bool  `json:"native"`
+	Rows           int   `json:"rows"`
+	Cols           int   `json:"cols"`
+	SamplePerPixel int   `json:"sample_per_pixel"`
+	BitsPerSample  int   `json:"bits_per_sample"`
+	Size           int64 `json:"size"`
+}
+
+var (
+	dict = map[tag.Tag]tag.TagInfo{
+		{Group: 0x0015, Element: 0x0001}: {VR: "AE", Name: "0015,0001", VM: "1"},
+		{Group: 0x0015, Element: 0x0002}: {VR: "AS", Name: "0015,0002", VM: "1"},
+		{Group: 0x0015, Element: 0x0003}: {VR: "AT", Name: "0015,0003", VM: "1"},
+		{Group: 0x0015, Element: 0x0004}: {VR: "CS", Name: "0015,0004", VM: "1"},
+		{Group: 0x0015, Element: 0x0005}: {VR: "DA", Name: "0015,0005", VM: "1"},
+		{Group: 0x0015, Element: 0x0006}: {VR: "DS", Name: "0015,0006", VM: "1"},
+		{Group: 0x0015, Element: 0x0007}: {VR: "DT", Name: "0015,0007", VM: "1"},
+		{Group: 0x0015, Element: 0x0008}: {VR: "FL", Name: "0015,0008", VM: "1"},
+		{Group: 0x0015, Element: 0x0009}: {VR: "FD", Name: "0015,0009", VM: "1"},
+		{Group: 0x0015, Element: 0x0010}: {VR: "IS", Name: "0015,0010", VM: "1"},
+		{Group: 0x0015, Element: 0x0011}: {VR: "LO", Name: "0015,0011", VM: "1"},
+		{Group: 0x0015, Element: 0x0012}: {VR: "LT", Name: "0015,0012", VM: "1"},
+		{Group: 0x0015, Element: 0x0013}: {VR: "OB", Name: "0015,0013", VM: "1"},
+		{Group: 0x0015, Element: 0x0014}: {VR: "OD", Name: "0015,0014", VM: "1"},
+		{Group: 0x0015, Element: 0x0015}: {VR: "OF", Name: "0015,0015", VM: "1"},
+		{Group: 0x0015, Element: 0x0016}: {VR: "OL", Name: "0015,0016", VM: "1"},
+		{Group: 0x0015, Element: 0x0017}: {VR: "OV", Name: "0015,0017", VM: "1"},
+		{Group: 0x0015, Element: 0x0018}: {VR: "OW", Name: "0015,0018", VM: "1"},
+		{Group: 0x0015, Element: 0x0019}: {VR: "PN", Name: "0015,0019", VM: "1"},
+		{Group: 0x0015, Element: 0x0020}: {VR: "SH", Name: "0015,0020", VM: "1"},
+		{Group: 0x0015, Element: 0x0021}: {VR: "SL", Name: "0015,0021", VM: "1"},
+		{Group: 0x0015, Element: 0x0022}: {VR: "SQ", Name: "0015,0022", VM: "1"},
+		{Group: 0x0015, Element: 0x0023}: {VR: "SS", Name: "0015,0023", VM: "1"},
+		{Group: 0x0015, Element: 0x0024}: {VR: "ST", Name: "0015,0024", VM: "1"},
+		{Group: 0x0015, Element: 0x0025}: {VR: "SV", Name: "0015,0025", VM: "1"},
+		{Group: 0x0015, Element: 0x0026}: {VR: "TM", Name: "0015,0026", VM: "1"},
+		{Group: 0x0015, Element: 0x0027}: {VR: "UC", Name: "0015,0027", VM: "1"},
+		{Group: 0x0015, Element: 0x0028}: {VR: "UI", Name: "0015,0028", VM: "1"},
+		{Group: 0x0015, Element: 0x0029}: {VR: "UL", Name: "0015,0029", VM: "1"},
+		{Group: 0x0015, Element: 0x0030}: {VR: "UR", Name: "0015,0030", VM: "1"},
+		{Group: 0x0015, Element: 0x0031}: {VR: "UN", Name: "0015,0031", VM: "1"},
+		{Group: 0x0015, Element: 0x0032}: {VR: "US", Name: "0015,0032", VM: "1"},
+		{Group: 0x0015, Element: 0x0033}: {VR: "UT", Name: "0015,0033", VM: "1"},
+		{Group: 0x0015, Element: 0x0034}: {VR: "UV", Name: "0015,0034", VM: "1"},
+	}
+)
+
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	fname := "cr"
-	ds, err := dicom.ParseFile(fname+".dcm", nil)
+	tag.SetCustomDict(dict)
+
+	fname := "ect"
+	ds, err := dicom.ParseFile(fname+".export.dcm", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	addElement(&ds)
+	// addElement(&ds)
 
 	data, err := encodeDataSet(ds)
 	if err != nil {
@@ -41,16 +92,17 @@ func main() {
 	}
 	extractPixelData(dicom.MustGetPixelDataInfo(pde.Value))
 
-	f, err := os.Create(fname + ".export.dcm")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := dicom.Write(f, ds, dicom.SkipVRVerification()); err != nil {
-		log.Println(err)
-	}
+	/*
+		f, err := os.Create(fname + ".export.dcm")
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := dicom.Write(f, ds); err != nil {
+			log.Println(err)
+		}
 
-	f.Close()
-
+		f.Close()
+	*/
 }
 
 func encodeDataSet(ds dicom.Dataset) ([]byte, error) {
@@ -62,9 +114,14 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 	em := make(map[string]*Element)
 
 	for _, e := range elements {
-		tag := fmt.Sprintf("%04x,%04x", e.Tag.Group, e.Tag.Element)
+		info, err := tag.Find(e.Tag)
+		if err != nil {
+			log.Println("find Tag:", e.Tag, err)
+		}
+
 		el := &Element{
 			VR:     e.RawValueRepresentation,
+			Name:   info.Name,
 			Length: e.ValueLength,
 		}
 		// log.Println("element:", e.Tag, e.RawValueRepresentation, e.Value)
@@ -89,13 +146,28 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 			}
 		case dicom.PixelData:
 			pdi := dicom.MustGetPixelDataInfo(e.Value)
-			log.Println("find pixelData:", pdi.IsEncapsulated, len(pdi.Frames))
+			for _, frame := range pdi.Frames {
+				fr := Frame{}
+				if pdi.IsEncapsulated {
+					fr.Size = int64(len(frame.EncapsulatedData.Data))
+				} else {
+					fr.Native = true
+					fr.Cols = frame.NativeData.Cols
+					fr.Rows = frame.NativeData.Rows
+					fr.SamplePerPixel = frame.NativeData.SamplesPerPixel
+					fr.BitsPerSample = frame.NativeData.BitsPerSample
+					fr.Size = int64(len(frame.NativeData.Data))
+				}
+				el.Values = append(el.Values, fr)
+			}
 		case dicom.Sequences:
 			for _, item := range e.Value.GetValue().([]*dicom.SequenceItemValue) {
 				el.Values = append(el.Values, encodeElement(item.GetValue().([]*dicom.Element)))
 			}
 		}
-		em[tag] = el
+
+		t := fmt.Sprintf("%04x,%04x", e.Tag.Group, e.Tag.Element)
+		em[t] = el
 	}
 
 	return em

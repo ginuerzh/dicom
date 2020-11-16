@@ -56,7 +56,7 @@ def list_tags() -> List[Tag]:
 def generate(out: IO[str]):
     tags = list_tags()
 
-    print("package dicomtag", file=out)
+    print("package tag", file=out)
     print("", file=out)
     print("// Code generated from generate_tag_definitions.py. DO NOT EDIT.", file=out)
     for t in tags:

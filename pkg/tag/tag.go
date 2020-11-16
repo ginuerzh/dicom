@@ -154,16 +154,22 @@ func GetVRKind(tag Tag, vr string) VRKind {
 // the DICOM standard, or is retired from the standard, it returns an error.
 func Find(tag Tag) (TagInfo, error) {
 	maybeInitTagDict()
-	entry, ok := tagDict[tag]
-	if !ok {
-		// (0000-u-ffff,0000)	UL	GenericGroupLength	1	GENERIC
-		if tag.Group%2 == 0 && tag.Element == 0x0000 {
-			entry = TagInfo{tag, "UL", "GenericGroupLength", "1"}
-		} else {
-			return TagInfo{}, fmt.Errorf("Could not find tag (0x%x, 0x%x) in dictionary", tag.Group, tag.Element)
+	if entry, ok := tagDict[tag]; ok {
+		return entry, nil
+	}
+
+	// (0000-u-ffff,0000)	UL	GenericGroupLength	1	GENERIC
+	if tag.Group%2 == 0 && tag.Element == 0x0000 {
+		return TagInfo{tag, "UL", "GenericGroupLength", "1"}, nil
+	}
+
+	if len(customDict) > 0 {
+		if entry, ok := customDict[tag]; ok {
+			return entry, nil
 		}
 	}
-	return entry, nil
+
+	return TagInfo{}, fmt.Errorf("Could not find tag (0x%x, 0x%x) in dictionary", tag.Group, tag.Element)
 }
 
 // MustFind is like FindTag, but panics on error.

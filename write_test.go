@@ -30,7 +30,7 @@ func TestWrite(t *testing.T) {
 				mustNewElement(tag.MediaStorageSOPInstanceUID, []string{"1.2.3.4.5.6.7"}),
 				mustNewElement(tag.TransferSyntaxUID, []string{uid.ImplicitVRLittleEndian}),
 				mustNewElement(tag.PatientName, []string{"Bob", "Jones"}),
-				mustNewElement(tag.Rows, []int64{128}),
+				mustNewElement(tag.Rows, []uint64{128}),
 				mustNewElement(tag.FloatingPointValue, []float64{128.10}),
 			}},
 			expectedError: nil,
@@ -57,8 +57,8 @@ func TestWrite(t *testing.T) {
 							Tag:                    tag.Rows,
 							ValueRepresentation:    tag.VRUInt16List,
 							RawValueRepresentation: "US",
-							Value: &intsValue{
-								value: []int64{100},
+							Value: &uintsValue{
+								value: []uint64{100},
 							},
 						},
 					},
@@ -76,8 +76,8 @@ func TestWrite(t *testing.T) {
 							Tag:                    tag.Rows,
 							ValueRepresentation:    tag.VRUInt16List,
 							RawValueRepresentation: "US",
-							Value: &intsValue{
-								value: []int64{100},
+							Value: &uintsValue{
+								value: []uint64{100},
 							},
 						},
 					},
@@ -138,7 +138,7 @@ func TestWrite(t *testing.T) {
 				mustNewElement(tag.MediaStorageSOPClassUID, []string{"1.2.840.10008.5.1.4.1.1.1.2"}),
 				mustNewElement(tag.MediaStorageSOPInstanceUID, []string{"1.2.3.4.5.6.7"}),
 				mustNewElement(tag.PatientName, []string{"Bob", "Jones"}),
-				mustNewElement(tag.Rows, []int64{128}),
+				mustNewElement(tag.Rows, []uint64{128}),
 				mustNewElement(tag.FloatingPointValue, []float64{128.10}),
 			}},
 			// This gets inserted if DefaultMissingTransferSyntax is provided:
@@ -253,7 +253,7 @@ func TestVerifyValueType(t *testing.T) {
 		{
 			name:      "valid",
 			tg:        tag.FileMetaInformationGroupLength,
-			value:     mustNewValue([]int64{128}),
+			value:     mustNewValue([]uint64{128}),
 			vr:        "UL",
 			wantError: false,
 		},

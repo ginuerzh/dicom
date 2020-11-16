@@ -59,15 +59,16 @@ func readVL(r dicomio.Reader, isImplicit bool, t tag.Tag, vr string) (uint32, er
 	// More details here: http://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_7.1.2
 	switch vr {
 	// TODO: Parsed VR should be an enum. Will require refactors of tag pkg.
-	case "NA", "OB", "OD", "OF", "OL", "OW", "SQ", "UN", "UC", "UR", "UT":
+	case "NA", "OB", "OD", "OF", "OL", "OV", "OW", "SQ", "SV", "UN", "UC", "UR", "UV", "UT":
 		_ = r.Skip(2) // ignore two reserved bytes (0000H)
 		vl, err := r.ReadUInt32()
 		if err != nil {
 			return 0, err
 		}
 
-		if vl == tag.VLUndefinedLength && (vr == "UC" || vr == "UR" || vr == "UT") {
-			return 0, errors.New("UC, UR and UT may not have an Undefined Length, i.e.,a Value Length of FFFFFFFFH")
+		// http://dicom.nema.org/medical/dicom/current/output/html/part05.html#sect_7.1.2
+		if vl == tag.VLUndefinedLength && (vr == "SV" || vr == "UC" || vr == "UR" || vr == "UV" || vr == "UT") {
+			return 0, errors.New("SV, UC, UR, UV and UT may not have an Undefined Length, i.e.,a Value Length of FFFFFFFFH")
 		}
 		return vl, nil
 	default:
