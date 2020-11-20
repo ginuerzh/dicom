@@ -12,7 +12,7 @@ func TestElement_MarshalJSON_NestedElements(t *testing.T) {
 	nestedData := [][]*Element{
 		{
 			{
-				Tag:                 tag.PatientName,
+				Tag:                 tag.ComponentName,
 				ValueRepresentation: tag.VRString,
 				Value: &stringsValue{
 					value: []string{"Bob"},
@@ -106,7 +106,7 @@ func TestNewValue(t *testing.T) {
 			data: [][]*Element{
 				{
 					{
-						Tag:                 tag.PatientName,
+						Tag:                 tag.ComponentName,
 						ValueRepresentation: tag.VRString,
 						Value: &stringsValue{
 							value: []string{"Bob"},
@@ -118,7 +118,7 @@ func TestNewValue(t *testing.T) {
 				{
 					elements: []*Element{
 						{
-							Tag:                 tag.PatientName,
+							Tag:                 tag.ComponentName,
 							ValueRepresentation: tag.VRString,
 							Value: &stringsValue{
 								value: []string{"Bob"},

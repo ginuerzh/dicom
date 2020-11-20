@@ -57,7 +57,7 @@ func ExampleDataset_FlatIterator() {
 	nestedData := [][]*Element{
 		{
 			{
-				Tag:                 tag.PatientName,
+				Tag:                 tag.ComponentName,
 				ValueRepresentation: tag.VRString,
 				Value: &stringsValue{
 					value: []string{"Bob"},

@@ -72,8 +72,8 @@ func main() {
 
 	tag.SetCustomDict(dict)
 
-	fname := "ect"
-	ds, err := dicom.ParseFile(fname+".export.dcm", nil)
+	fname := "detector"
+	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,17 +92,15 @@ func main() {
 	}
 	extractPixelData(dicom.MustGetPixelDataInfo(pde.Value))
 
-	/*
-		f, err := os.Create(fname + ".export.dcm")
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := dicom.Write(f, ds); err != nil {
-			log.Println(err)
-		}
+	f, err := os.Create(fname + ".export.dcm")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := dicom.Write(f, ds); err != nil {
+		log.Println(err)
+	}
 
-		f.Close()
-	*/
+	f.Close()
 }
 
 func encodeDataSet(ds dicom.Dataset) ([]byte, error) {
