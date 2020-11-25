@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image/jpeg"
@@ -129,7 +130,7 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 				el.Values = append(el.Values, v)
 			}
 		case dicom.Bytes:
-			el.Values = append(el.Values, fmt.Sprintf("%v", dicom.MustGetBytes(e.Value)))
+			el.Values = append(el.Values, base64.StdEncoding.EncodeToString(dicom.MustGetBytes(e.Value)))
 		case dicom.Ints:
 			for _, v := range dicom.MustGetInts(e.Value) {
 				el.Values = append(el.Values, strconv.FormatInt(int64(v), 10))

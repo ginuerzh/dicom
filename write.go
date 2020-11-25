@@ -499,7 +499,7 @@ func writeFloats(w dicomio.Writer, v Value, vr string) error {
 	floats := MustGetFloats(v)
 	for _, fl := range floats {
 		switch vr {
-		case "FL":
+		case "FL", "OF":
 			// NOTE: this is a conversion from float64 -> float32 which may lead to a loss in precision. The assumption
 			// is that the value sitting in the float64 was originally at float32 precision if the VR is FL for this
 			// element. We will need to revisit this. Maybe we can detect if there will be a loss of precision and if so
@@ -508,7 +508,7 @@ func writeFloats(w dicomio.Writer, v Value, vr string) error {
 			if err != nil {
 				return err
 			}
-		case "FD":
+		case "FD", "OD":
 			err := w.WriteFloat64(fl)
 			if err != nil {
 				return err
