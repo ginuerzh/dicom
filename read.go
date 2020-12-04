@@ -157,7 +157,7 @@ func readPixelData(r dicomio.Reader, t tag.Tag, vr string, vl uint32, d *Dataset
 		return nil, errors.New("the Dataset context cannot be nil in order to read Native PixelData")
 	}
 
-	i, _, err := readNativeFrames(r, d, fc)
+	i, _, err := readNativeFrames(r, d, int64(vl), fc)
 
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func readPixelData(r dicomio.Reader, t tag.Tag, vr string, vl uint32, d *Dataset
 
 // readNativeFrames reads NativeData frames from a Decoder based on already parsed pixel information
 // that should be available in parsedData (elements like NumberOfFrames, rows, columns, etc)
-func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Frame) (pixelData *PixelDataInfo,
+func readNativeFrames(d dicomio.Reader, parsedData *Dataset, vl int64, fc chan<- *frame.Frame) (pixelData *PixelDataInfo,
 	bytesRead int64, err error) {
 	image := PixelDataInfo{
 		IsEncapsulated: false,
@@ -214,6 +214,10 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 
 	pixelsPerFrame := MustGetUInts(rows.Value)[0] * MustGetUInts(cols.Value)[0]
 
+	if int64(pixelsPerFrame*(bitsAllocated/8)) == vl {
+		samplesPerPixel = 1 // sometimes the (0028,0002) gives the wrong value, correct it.
+	}
+
 	// Parse the pixels:
 	image.Frames = make([]frame.Frame, nFrames)
 	for frameIdx := 0; frameIdx < nFrames; frameIdx++ {
@@ -225,7 +229,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, fc chan<- *frame.Fr
 				SamplesPerPixel: int(samplesPerPixel),
 				Rows:            int(MustGetUInts(rows.Value)[0]),
 				Cols:            int(MustGetUInts(cols.Value)[0]),
-				Data:            make([]byte, int(pixelsPerFrame*samplesPerPixel*(bitsAllocated/8))),
+				Data:            make([]byte, vl),
 			},
 		}
 		n, err := io.ReadFull(d, currentFrame.NativeData.Data)
