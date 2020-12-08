@@ -214,7 +214,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, vl int64, fc chan<-
 
 	pixelsPerFrame := MustGetUInts(rows.Value)[0] * MustGetUInts(cols.Value)[0]
 
-	if int64(pixelsPerFrame*(bitsAllocated/8)) == vl {
+	if int64(pixelsPerFrame*(bitsAllocated/8))*int64(nFrames) == vl {
 		samplesPerPixel = 1 // sometimes the (0028,0002) gives the wrong value, correct it.
 	}
 
@@ -229,7 +229,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, vl int64, fc chan<-
 				SamplesPerPixel: int(samplesPerPixel),
 				Rows:            int(MustGetUInts(rows.Value)[0]),
 				Cols:            int(MustGetUInts(cols.Value)[0]),
-				Data:            make([]byte, vl),
+				Data:            make([]byte, int(pixelsPerFrame*samplesPerPixel*(bitsAllocated/8))),
 			},
 		}
 		n, err := io.ReadFull(d, currentFrame.NativeData.Data)
