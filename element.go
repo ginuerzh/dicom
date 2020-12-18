@@ -83,15 +83,21 @@ type Value interface {
 // Data must be one of the following types, otherwise and error will be returned
 // (ErrorUnexpectedDataType).
 //
-// Acceptable types: []int, []string, []byte, []float64, PixelDataInfo,
+// Acceptable types: int, []int64, uint, []uint64, string, []string, []byte, []float64, PixelDataInfo,
 // [][]*Element (represents a sequence, which contains several
 // items which each contain several elements).
 func NewValue(data interface{}) (Value, error) {
 	switch data.(type) {
+	case int:
+		return &intsValue{value: []int64{int64(data.(int))}}, nil
 	case []int64:
 		return &intsValue{value: data.([]int64)}, nil
+	case uint:
+		return &uintsValue{value: []uint64{uint64(data.(uint))}}, nil
 	case []uint64:
 		return &uintsValue{value: data.([]uint64)}, nil
+	case string:
+		return &stringsValue{value: []string{data.(string)}}, nil
 	case []string:
 		return &stringsValue{value: data.([]string)}, nil
 	case []byte:
