@@ -344,11 +344,12 @@ func readSequenceItem(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value,
 
 func readBytes(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) {
 	// TODO: add special handling of PixelData
-	if vr == "OB" {
+	switch vr {
+	case "OB", "UN":
 		data := make([]byte, vl)
 		_, err := io.ReadFull(r, data)
 		return &bytesValue{value: data}, err
-	} else if vr == "OW" {
+	case "OW":
 		// OW -> stream of 16 bit words
 		if vl%2 != 0 {
 			return nil, ErrorOWRequiresEvenVL
@@ -369,7 +370,6 @@ func readBytes(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error)
 		}
 		return &bytesValue{value: buf.Bytes()}, nil
 	}
-
 	return nil, ErrorUnsupportedVR
 }
 

@@ -125,7 +125,7 @@ func GetVRKind(tag Tag, vr string) VRKind {
 		return VRDate
 	case "LT", "UT":
 		return VRString
-	case "OB", "OW":
+	case "OB", "OW", "UN":
 		return VRBytes
 	case "FD", "OD":
 		return VRFloat64List
@@ -159,7 +159,7 @@ func Find(tag Tag) (TagInfo, error) {
 	}
 
 	// (0000-u-ffff,0000)	UL	GenericGroupLength	1	GENERIC
-	if tag.Group%2 == 0 && tag.Element == 0x0000 {
+	if tag.Element == 0x0000 {
 		return TagInfo{tag, "UL", "GenericGroupLength", "1"}, nil
 	}
 

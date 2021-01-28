@@ -1,8 +1,6 @@
 package charset
 
 import (
-	"fmt"
-
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/htmlindex"
 )
@@ -81,15 +79,26 @@ func ParseSpecificCharacterSet(encodingNames []string) (CodingSystem, error) {
 	var decoders []*encoding.Decoder
 	for _, name := range encodingNames {
 		var c *encoding.Decoder
-		if htmlName, ok := htmlEncodingNames[name]; !ok {
-			// TODO(saito) Support more encodings.
-			return CodingSystem{}, fmt.Errorf("ParseSpecificCharacterSet: Unknown character set '%s'. Assuming utf-8", name)
-		} else {
-			if htmlName != "" {
-				d, err := htmlindex.Get(htmlName)
-				if err != nil {
-					panic(fmt.Sprintf("Encoding name %s (for %s) not found", name, htmlName))
+		/*
+			if htmlName, ok := htmlEncodingNames[name]; !ok {
+				// TODO(saito) Support more encodings.
+				return CodingSystem{}, fmt.Errorf("ParseSpecificCharacterSet: Unknown character set '%s'. Assuming utf-8", name)
+			} else {
+				if htmlName != "" {
+					d, _ := htmlindex.Get(htmlName)
+					 if err != nil {
+						panic(fmt.Sprintf("Encoding name %s (for %s) not found", name, htmlName))
+					 }
+					if d != nil {
+						c = d.NewDecoder()
+					}
 				}
+			}
+		*/
+		htmlName, ok := htmlEncodingNames[name]
+		if ok && htmlName != "" {
+			d, _ := htmlindex.Get(htmlName)
+			if d != nil {
 				c = d.NewDecoder()
 			}
 		}

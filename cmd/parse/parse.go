@@ -73,7 +73,7 @@ func main() {
 
 	tag.SetCustomDict(dict)
 
-	fname := "detector"
+	fname := "611-001"
 	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)

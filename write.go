@@ -266,7 +266,7 @@ func verifyValueType(t tag.Tag, value Value, vr string) error {
 		ok = valueType == Sequences
 	case "NA":
 		ok = valueType == SequenceItem
-	case "OW", "OB":
+	case "OW", "OB", "UN":
 		if t == tag.PixelData {
 			ok = valueType == PixelData
 		} else {
@@ -437,7 +437,7 @@ func writeBytes(w dicomio.Writer, values []byte, vr string) error {
 	switch vr {
 	case "OW":
 		err = writeOtherWordString(w, values)
-	case "OB":
+	case "OB", "UN":
 		err = writeOtherByteString(w, values)
 	default:
 		return ErrorMismatchValueTypeAndVR
