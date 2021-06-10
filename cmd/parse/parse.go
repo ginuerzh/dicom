@@ -73,7 +73,7 @@ func main() {
 
 	tag.SetCustomDict(dict)
 
-	fname := "611-001"
+	fname := "raw-YBR_FULL_422"
 	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)
@@ -97,7 +97,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := dicom.Write(f, ds); err != nil {
+	if err := dicom.Write(f, ds, dicom.SkipVRVerification()); err != nil {
 		log.Println(err)
 	}
 
@@ -174,7 +174,11 @@ func encodeElement(elements []*dicom.Element) map[string]*Element {
 
 func extractPixelData(info dicom.PixelDataInfo) {
 	for i, fr := range info.Frames {
-		img, _ := fr.GetImage()
+		img, err := fr.GetImage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		f, _ := os.Create(fmt.Sprintf("image_%d.jpg", i))
 		jpeg.Encode(f, img, &jpeg.Options{Quality: 100})
 		f.Close()

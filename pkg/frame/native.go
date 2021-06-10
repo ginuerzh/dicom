@@ -1,19 +1,21 @@
 package frame
 
 import (
+	"bytes"
 	"encoding/binary"
 	"image"
 	"image/color"
+	"image/jpeg"
 )
 
 // NativeFrame represents a native image frame
 type NativeFrame struct {
-	// Data is a slice of pixels, where each pixel can have multiple values
-	Data            []byte
 	Rows            int
 	Cols            int
 	SamplesPerPixel int
 	BitsPerSample   int
+	// Data is a slice of pixels, where each pixel can have multiple values
+	Data []byte
 }
 
 func (n *NativeFrame) IsEncapsulated() bool { return false }
@@ -47,10 +49,13 @@ func (n *NativeFrame) GetPixel(x, y int) (samples []uint32) {
 // processing. This default processing is basic at the moment, and does not
 // autoscale pixel values or use window width or level info.
 func (n *NativeFrame) GetImage() (image.Image, error) {
-	i := image.NewGray16(image.Rect(0, 0, n.Cols, n.Rows))
-	for j := 0; j < n.Cols*n.Rows; j++ {
-		x, y := j%n.Cols, j/n.Cols
-		i.SetGray16(x, y, color.Gray16{Y: uint16(n.GetPixel(x, y)[0])}) // for now, assume we're not overflowing uint16, assume gray image
+	if n.SamplesPerPixel == 1 {
+		img := image.NewGray16(image.Rect(0, 0, n.Cols, n.Rows))
+		for i := 0; i < n.Cols*n.Rows; i++ {
+			x, y := i%n.Cols, i/n.Cols
+			img.SetGray16(x, y, color.Gray16{Y: uint16(n.GetPixel(x, y)[0])}) // for now, assume we're not overflowing uint16, assume gray image
+		}
+		return img, nil
 	}
-	return i, nil
+	return jpeg.Decode(bytes.NewReader(n.Data))
 }

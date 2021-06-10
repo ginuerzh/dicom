@@ -218,6 +218,13 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, vl int64, fc chan<-
 		samplesPerPixel = 1 // sometimes the (0028,0002) gives the wrong value, correct it.
 	}
 
+	frameLen := int64(pixelsPerFrame * samplesPerPixel * (bitsAllocated / 8))
+	if nFrames == 1 {
+		frameLen = vl
+	}
+	if nFrames > 1 && frameLen*int64(nFrames) != vl {
+		return nil, 0, fmt.Errorf("pixeldata length is inconsistent, should be %d, actual %d", vl, frameLen*int64(nFrames))
+	}
 	// Parse the pixels:
 	image.Frames = make([]frame.Frame, nFrames)
 	for frameIdx := 0; frameIdx < nFrames; frameIdx++ {
@@ -229,7 +236,7 @@ func readNativeFrames(d dicomio.Reader, parsedData *Dataset, vl int64, fc chan<-
 				SamplesPerPixel: int(samplesPerPixel),
 				Rows:            int(MustGetUInts(rows.Value)[0]),
 				Cols:            int(MustGetUInts(cols.Value)[0]),
-				Data:            make([]byte, int(pixelsPerFrame*samplesPerPixel*(bitsAllocated/8))),
+				Data:            make([]byte, frameLen),
 			},
 		}
 		n, err := io.ReadFull(d, currentFrame.NativeData.Data)
@@ -413,14 +420,12 @@ func readFloat(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error)
 				return nil, err
 			}
 			retVal.value = append(retVal.value, pval)
-			break
 		case "FD", "OD":
 			val, err := r.ReadFloat64()
 			if err != nil {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, val)
-			break
 		default:
 			return nil, errorUnableToParseFloat
 		}
@@ -454,21 +459,18 @@ func readInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, int64(val))
-			break
 		case "SL":
 			val, err := r.ReadInt32()
 			if err != nil {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, int64(val))
-			break
 		case "SV":
 			val, err := r.ReadInt64()
 			if err != nil {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, int64(val))
-			break
 		default:
 			return nil, errors.New("unable to parse integer type")
 		}
@@ -491,21 +493,18 @@ func readUInt(r dicomio.Reader, t tag.Tag, vr string, vl uint32) (Value, error) 
 				return nil, err
 			}
 			retVal.value = append(retVal.value, uint64(val))
-			break
 		case "AT", "OL", "UL":
 			val, err := r.ReadUInt32()
 			if err != nil {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, uint64(val))
-			break
 		case "OV", "UV":
 			val, err := r.ReadUInt64()
 			if err != nil {
 				return nil, err
 			}
 			retVal.value = append(retVal.value, uint64(val))
-			break
 		default:
 			return nil, errors.New("unable to parse integer type")
 		}
