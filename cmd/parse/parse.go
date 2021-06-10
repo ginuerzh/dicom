@@ -73,7 +73,7 @@ func main() {
 
 	tag.SetCustomDict(dict)
 
-	fname := "raw-YBR_FULL_422"
+	fname := "us_valid_pixel_aspect"
 	ds, err := dicom.ParseFile(fname+".dcm", nil)
 	if err != nil {
 		log.Fatal(err)
